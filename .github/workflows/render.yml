@@ -81,9 +81,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # The card was rendered into out/ before this step, while still on
+          # main, so it is an untracked file that blocks any checkout. Carry it
+          # out of the way, switch, and bring it back.
+          mkdir -p /tmp/card && cp out/*.png /tmp/card/ 2>/dev/null || true
+          git clean -fdq out/
+
           # Re-rendering an edited issue reuses the branch, so an edit updates
           # the open pull request instead of opening a second one.
-          git fetch origin "$BRANCH" 2>/dev/null && git checkout "$BRANCH" || git checkout -b "$BRANCH"
+          if git fetch origin "$BRANCH" 2>/dev/null; then
+            git checkout -B "$BRANCH" FETCH_HEAD
+          else
+            git checkout -B "$BRANCH"
+          fi
+
+          cp /tmp/card/*.png out/ 2>/dev/null || true
           git add out/
           if git diff --cached --quiet; then
             # The render is deterministic, so an unchanged issue produces an

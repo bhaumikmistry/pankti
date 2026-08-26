@@ -86,10 +86,14 @@ jobs:
           git fetch origin "$BRANCH" 2>/dev/null && git checkout "$BRANCH" || git checkout -b "$BRANCH"
           git add out/
           if git diff --cached --quiet; then
-            echo "identical to what is already there, nothing to push"
-            exit 0
+            # The render is deterministic, so an unchanged issue produces an
+            # identical file. That is not a reason to skip the pull request:
+            # the first attempt may have pushed the branch and then failed
+            # before opening one.
+            echo "image unchanged"
+          else
+            git commit -m "Card for #$N"
           fi
-          git commit -m "Card for #$N"
           git push -u origin "$BRANCH"
 
           FILE=$(jq -r '.file' render-result.json)

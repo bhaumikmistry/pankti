@@ -14,10 +14,12 @@ permissions:
   issues: write
   pull-requests: write
 
-# One render at a time. Two issues opened together would otherwise race on the
-# push, the same way the tweets repo did.
+# Per issue, not global. Each issue pushes to its own card/N branch, so two
+# different issues cannot collide, and a single global group meant GitHub kept
+# only one pending run and cancelled the rest when several arrived together.
+# Editing the same issue twice still serialises, which is the case that matters.
 concurrency:
-  group: render-card
+  group: render-card-${{ github.event.issue.number || inputs.issue }}
   cancel-in-progress: false
 
 jobs:

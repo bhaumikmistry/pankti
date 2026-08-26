@@ -126,6 +126,26 @@ for (const [name, spec] of [
   ok(`${name} stays inside its margins`, r.overflow === 0, `overflows by ${r.overflow}px at ${r.fontSize}px`)
 }
 
+// A flat 132px ceiling meant a two word quote sat as a thin band in an empty
+// square. The bounds scale with the card now, so the extremes are pinned.
+console.log('\nextremes')
+const tiny = await renderCard({ number: 20, quote: 'Keep going.', author: 'Anon', source: '', theme: 'paper', size: 'square' }, { outDir: TMP })
+ok('two words get a display size', tiny.fontSize >= 180, `got ${tiny.fontSize}px`)
+ok('two words stay inside', tiny.overflow === 0)
+
+const fifty = await renderCard({
+  number: 21,
+  quote: 'The first thing you will notice is that there are quite a few subtasks, and each of those steps decomposes into several more steps, some of which have tricky details to them due to the properties of the materials and the task and the limitations of yourself and your tools.',
+  author: 'John Salvatier', source: '', theme: 'paper', size: 'square',
+}, { outDir: TMP })
+ok('fifty words still fit', fifty.overflow === 0, `overflows by ${fifty.overflow}px`)
+ok('fifty words stay readable', fifty.fontSize >= 50, `got ${fifty.fontSize}px`)
+ok('longer text gets smaller type', fifty.fontSize < tiny.fontSize)
+
+// The ceiling has to follow the card, or a story is set at square proportions.
+const tallTiny = await renderCard({ number: 22, quote: 'Keep going.', author: '', source: '', theme: 'paper', size: 'story' }, { outDir: TMP })
+ok('story uses the same width-based ceiling', tallTiny.fontSize === tiny.fontSize, `${tallTiny.fontSize} vs ${tiny.fontSize}`)
+
 let refused = false
 try {
   await renderCard({ number: 5, quote: 'word '.repeat(900).trim(), author: '', source: '', theme: 'paper', size: 'square' }, { outDir: TMP })

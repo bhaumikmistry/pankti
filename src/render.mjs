@@ -8,10 +8,16 @@ import { SIZES, specFromIssue, slugFor } from './parse.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = join(here, '..', 'out')
 
-// Below this the quote is technically on the card and practically unreadable,
-// so the run fails and says to trim rather than shipping something illegible.
-const MIN_FONT = 26
-const MAX_FONT = 132
+/**
+ * Both bounds scale with the card, because a fixed ceiling is only right for
+ * one width. At a flat 132px a two word quote sat as a thin band in an empty
+ * square: not filling anything, just capped.
+ *
+ * The floor is the point below which the quote is technically on the card and
+ * practically unreadable, and the run fails rather than shipping it.
+ */
+const maxFont = (w) => Math.round(w * 0.2)
+const minFont = (w) => Math.round(w * 0.024)
 
 /**
  * Binary search the largest font size whose text still fits.
@@ -19,9 +25,9 @@ const MAX_FONT = 132
  * This is the part that cannot be done without a layout engine: "fill the
  * square" depends on where the lines break, which depends on the font size.
  */
-async function fitText(page, height) {
-  let lo = MIN_FONT
-  let hi = MAX_FONT
+async function fitText(page, width) {
+  let lo = minFont(width)
+  let hi = maxFont(width)
   let best = null
 
   while (lo <= hi) {
@@ -60,7 +66,7 @@ export async function renderCard(spec, { outDir = OUT } = {}) {
     await page.setContent(cardHtml(spec), { waitUntil: 'load' })
     await page.evaluate(() => document.fonts.ready)
 
-    const { size: fontSize, fits } = await fitText(page, size.h)
+    const { size: fontSize, fits } = await fitText(page, size.w)
     if (!fits) {
       throw new Error(
         `The quote will not fit at a readable size. It is ${spec.quote.length} characters; ` +

@@ -1,0 +1,115 @@
+name: Render card
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to re-render
+        required: true
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+# One render at a time. Two issues opened together would otherwise race on the
+# push, the same way the tweets repo did.
+concurrency:
+  group: render-card
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Work out which issue
+        id: which
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N="${{ github.event.issue.number || inputs.issue }}"
+          echo "number=$N" >> "$GITHUB_OUTPUT"
+          gh issue view "$N" --repo "$GITHUB_REPOSITORY" \
+            --json number,title,body > issue.json
+          echo "slug=$(jq -r '.number' issue.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Render
+        id: render
+        run: |
+          set +e
+          ISSUE_JSON="$(cat issue.json)" node src/render.mjs
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      # A bad quote should say so on the issue rather than fail silently in a
+      # log nobody opens.
+      - name: Report a failure on the issue
+        if: steps.render.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Could not render this one."
+            echo
+            echo '```'
+            cat render-error.txt 2>/dev/null || echo "see the run log"
+            echo '```'
+            echo
+            echo "Edit the issue and it will try again."
+          } > comment.md
+          gh issue comment "${{ steps.which.outputs.number }}" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          exit 1
+
+      - name: Open a pull request with the card
+        if: steps.render.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ steps.which.outputs.number }}
+        run: |
+          BRANCH="card/$N"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Re-rendering an edited issue reuses the branch, so an edit updates
+          # the open pull request instead of opening a second one.
+          git fetch origin "$BRANCH" 2>/dev/null && git checkout "$BRANCH" || git checkout -b "$BRANCH"
+          git add out/
+          if git diff --cached --quiet; then
+            echo "identical to what is already there, nothing to push"
+            exit 0
+          fi
+          git commit -m "Card for #$N"
+          git push -u origin "$BRANCH"
+
+          FILE=$(jq -r '.file' render-result.json)
+          RAW="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$BRANCH/$FILE"
+          {
+            echo "Card for #$N."
+            echo
+            echo "<img src=\"$RAW\" width=\"420\">"
+            echo
+            jq -r '"| | |\n|---|---|\n| size | \(.dimensions) |\n| type size | \(.fontSize)px |\n| theme | \(.theme) |\n| characters | \(.chars) |"' render-result.json
+            echo
+            echo "Download it from the image above, or from Files changed."
+            echo
+            echo "Closes #$N"
+          } > pr.md
+
+          if gh pr view "$BRANCH" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh pr edit "$BRANCH" --repo "$GITHUB_REPOSITORY" --body-file pr.md
+            echo "updated the existing pull request"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main \
+              --title "Card for #$N" --body-file pr.md
+          fi

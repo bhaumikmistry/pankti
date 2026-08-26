@@ -1,0 +1,48 @@
+name: Quote card
+description: Give it a quote, get back an image
+title: "Card: "
+labels: ["card"]
+body:
+  - type: textarea
+    id: quote
+    attributes:
+      label: Quote
+      description: Line breaks are kept. The opening quote mark is drawn for you.
+      placeholder: |
+        Reality has a surprising amount of detail.
+    validations:
+      required: true
+
+  - type: input
+    id: author
+    attributes:
+      label: Author
+      placeholder: John Salvatier
+
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Book, essay, wherever it came from. Optional.
+      placeholder: Reality has a surprising amount of detail
+
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options:
+        - Paper, warm off white
+        - Ink, near black
+        - Sky, cool grey blue
+        - Rose, warm pink
+      default: 0
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      options:
+        - Square 1080x1080
+        - Portrait 1080x1350
+        - Story 1080x1920
+      default: 0

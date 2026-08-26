@@ -61,6 +61,11 @@ export function cardHtml(spec) {
     text-rendering: optimizeLegibility;
   }
 
+  /* A flex parent centring an oversized child overflows above and below, and
+     body.scrollHeight cannot see the half above. The fitter measures this
+     instead, which has a real height either way. */
+  #stage { width: 100%; }
+
   #quote {
     font-size: 64px;           /* replaced by the fitter */
     line-height: 1.34;
@@ -108,6 +113,7 @@ export function cardHtml(spec) {
   }
 </style></head>
 <body>
+  <main id="stage">
   <div id="quote"><span class="mark">&ldquo;</span>${lines.map(esc).join('\n')}</div>
   ${
     spec.author || spec.source
@@ -120,5 +126,6 @@ export function cardHtml(spec) {
   </div>`
       : ''
   }
+  </main>
 </body></html>`
 }

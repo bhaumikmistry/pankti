@@ -28,10 +28,15 @@ async function fitText(page, height) {
     const mid = Math.floor((lo + hi) / 2)
     const fits = await page.evaluate((size) => {
       const q = document.getElementById('quote')
+      const stage = document.getElementById('stage')
       q.style.fontSize = `${size}px`
-      // Force layout, then ask whether the body still contains its contents.
-      void document.body.offsetHeight
-      return document.body.scrollHeight <= document.body.clientHeight
+      void stage.offsetHeight // force layout
+
+      // The space actually available, once the card's padding is taken out.
+      const cs = getComputedStyle(document.body)
+      const available =
+        document.body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
+      return stage.scrollHeight <= available
     }, mid)
 
     if (fits) { best = mid; lo = mid + 1 } else { hi = mid - 1 }
@@ -63,10 +68,21 @@ export async function renderCard(spec, { outDir = OUT } = {}) {
       )
     }
 
+    // How far the content escapes its padded box, measured after fitting.
+    // Positive means something is being cut off at the edge of the card, which
+    // is exactly the failure a screenshot hides and a byte count cannot see.
+    const overflow = await page.evaluate(() => {
+      const stage = document.getElementById('stage').getBoundingClientRect()
+      const cs = getComputedStyle(document.body)
+      const top = parseFloat(cs.paddingTop)
+      const bottom = document.body.clientHeight - parseFloat(cs.paddingBottom)
+      return Math.round(Math.max(top - stage.top, stage.bottom - bottom, 0))
+    })
+
     mkdirSync(outDir, { recursive: true })
     const file = join(outDir, `${slugFor(spec)}.png`)
     await page.screenshot({ path: file, type: 'png' })
-    return { file, fontSize, width: size.w, height: size.h }
+    return { file, fontSize, overflow, width: size.w, height: size.h }
   } finally {
     await browser.close()
   }

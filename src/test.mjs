@@ -90,6 +90,22 @@ const a = await renderCard({ number: 9, quote: 'Same in, same out.', author: 'A'
 const b = await renderCard({ number: 9, quote: 'Same in, same out.', author: 'A', source: '', theme: 'paper', size: 'square' }, { outDir: TMP })
 ok('render is deterministic', readFileSync(a.file).equals(readFileSync(b.file)))
 
+// The fitter once measured document.body against itself. A flex parent
+// centring an oversized child overflows above and below, and scrollHeight
+// cannot see the half above, so cards rendered too large and were cut off at
+// both edges. Every render is checked for it now.
+console.log('\nnothing gets cut off')
+for (const [name, spec] of [
+  ['short', { number: 11, quote: 'Reality has a surprising amount of detail.', author: 'John Salvatier', source: '', theme: 'paper', size: 'square' }],
+  ['the one that broke', { number: 12, quote: 'Reality has a surprising amount of detail.\n\nThe reason it is so easy for people to end up intellectually stuck.', author: 'John Salvatier', source: 'johnsalvatier.org, 2017', theme: 'ink', size: 'square' }],
+  ['long', { number: 13, quote: 'word '.repeat(80).trim(), author: 'Someone', source: 'Somewhere', theme: 'sky', size: 'square' }],
+  ['devanagari', { number: 14, quote: 'एक भी काम की नहीं निकली,\nहाथ भरा पड़ा है लकीरों से', author: 'अज्ञात', source: 'शायरी', theme: 'rose', size: 'square' }],
+  ['story', { number: 15, quote: 'Tall and thin.', author: 'A', source: 'B', theme: 'ink', size: 'story' }],
+]) {
+  const r = await renderCard(spec, { outDir: TMP })
+  ok(`${name} stays inside its margins`, r.overflow === 0, `overflows by ${r.overflow}px at ${r.fontSize}px`)
+}
+
 let refused = false
 try {
   await renderCard({ number: 5, quote: 'word '.repeat(900).trim(), author: '', source: '', theme: 'paper', size: 'square' }, { outDir: TMP })

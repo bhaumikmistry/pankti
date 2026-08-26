@@ -30,6 +30,26 @@ ok('_No response_ becomes empty', blank.author === '')
 const dd = specFromIssue({ body: form({ Quote: 'x', Size: 'Portrait 1080x1350', Theme: 'Sky' }), number: 3 })
 ok('dropdown label maps to key', dd.spec.size === 'portrait' && dd.spec.theme === 'sky', `got ${dd.spec.size}/${dd.spec.theme}`)
 
+// "Rose, warm pink" matched `ink` inside "pink" and rendered the wrong theme.
+// Every label the form actually offers is checked now, not just an easy one.
+for (const [label, want] of [
+  ['Paper, warm off white', 'paper'],
+  ['Ink, near black', 'ink'],
+  ['Sky, cool grey blue', 'sky'],
+  ['Rose, warm pink', 'rose'],
+]) {
+  const got = specFromIssue({ body: form({ Quote: 'x', Theme: label }), number: 1 }).spec.theme
+  ok(`theme "${label}" -> ${want}`, got === want, `got ${got}`)
+}
+for (const [label, want] of [
+  ['Square 1080x1080', 'square'],
+  ['Portrait 1080x1350', 'portrait'],
+  ['Story 1080x1920', 'story'],
+]) {
+  const got = specFromIssue({ body: form({ Quote: 'x', Size: label }), number: 1 }).spec.size
+  ok(`size "${label}" -> ${want}`, got === want, `got ${got}`)
+}
+
 const fallback = specFromIssue({ body: 'no template here', title: 'A bare title', number: 4 })
 ok('falls back to the issue title', fallback.spec.quote === 'A bare title')
 ok('unknown theme falls back to paper', fallback.spec.theme === 'paper')

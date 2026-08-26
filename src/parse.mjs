@@ -39,16 +39,24 @@ export function parseIssueBody(body = '') {
 }
 
 /**
- * A dropdown's value is its label, so `Square 1080x1080` has to come back to
- * `square`. Matching on the key appearing anywhere in the label keeps working
- * if the labels are reworded later.
+ * A dropdown's value is its label, so `Rose, warm pink` has to come back to
+ * `rose`.
+ *
+ * This used to test whether the label contained a key anywhere, which picked
+ * `ink` out of `warm pink` and quietly rendered the wrong theme. The label's
+ * first word is the key, and the fallback is a whole-word match rather than a
+ * substring one.
  */
 function pick(value, table, fallback) {
   const v = String(value || '').trim().toLowerCase()
   if (!v) return fallback
   if (table[v]) return v
-  const hit = Object.keys(table).find((k) => v.includes(k))
-  return hit || fallback
+
+  const first = v.split(/[^a-z0-9]+/).filter(Boolean)[0]
+  if (first && table[first]) return first
+
+  const words = new Set(v.split(/[^a-z0-9]+/).filter(Boolean))
+  return Object.keys(table).find((k) => words.has(k)) || fallback
 }
 
 export function specFromIssue({ body, title, number }) {

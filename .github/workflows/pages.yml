@@ -1,0 +1,52 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'src/template.mjs'
+      - 'fonts/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The page imports the same template the Action renders with, and needs
+      # the same font files, so both are copied in rather than duplicated.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/fonts
+          cp site/index.html site/app.js _site/
+          cp src/template.mjs _site/
+          cp fonts/*.ttf _site/fonts/
+          test -s _site/template.mjs
+          test "$(ls _site/fonts/*.ttf | wc -l)" -eq 3
+          ls -la _site _site/fonts
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

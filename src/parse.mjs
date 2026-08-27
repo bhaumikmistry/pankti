@@ -1,3 +1,6 @@
+import { THEMES, SIZES } from './template.mjs'
+export { THEMES, SIZES }
+
 /**
  * Turns a GitHub issue body into a card spec.
  *
@@ -5,19 +8,6 @@
  * heading followed by the value. That is a stable shape to parse, and far more
  * reliable than asking for free text and hoping.
  */
-
-export const THEMES = {
-  paper: { bg: '#f4f1ea', ink: '#16150f', rule: '#c9c2b0', accent: '#8a7f63' },
-  ink: { bg: '#12140f', ink: '#ece9df', rule: '#33372c', accent: '#9aa285' },
-  sky: { bg: '#eaf0f4', ink: '#0f1a22', rule: '#b3c6d2', accent: '#5c7d92' },
-  rose: { bg: '#f6edea', ink: '#231411', rule: '#d8c0b7', accent: '#a06a58' },
-}
-
-export const SIZES = {
-  square: { w: 1080, h: 1080, label: 'Square 1080x1080' },
-  portrait: { w: 1080, h: 1350, label: 'Portrait 1080x1350' },
-  story: { w: 1080, h: 1920, label: 'Story 1080x1920' },
-}
 
 const DEFAULTS = { theme: 'paper', size: 'square', author: '', source: '' }
 

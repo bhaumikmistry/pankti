@@ -1,10 +1,12 @@
 # quote-cards
 
-Open an issue with a quote. Get back a pull request with the image.
+Type a quote, get an image sized for Instagram.
+
+**[bhaumikmistry.github.io/quote-cards](https://bhaumikmistry.github.io/quote-cards/)** for the page, or open an issue and get a pull request with the image.
 
 ![](https://raw.githubusercontent.com/bhaumikmistry/quote-cards/main/out/sample.png)
 
-## Using it
+## From an issue
 
 1. [New issue](../../issues/new?template=quote.yml), fill in the quote and who said it.
 2. A workflow renders it and opens a pull request with the image in the body.
@@ -45,3 +47,13 @@ npm test
 `npm test` renders real cards into `out/_test/` and checks the PNG headers,
 that long quotes shrink, that Devanagari comes out, and that the same input
 twice gives byte-identical output.
+
+## From the page
+
+The page runs the same fitter and the same card template the Action does, in
+your own browser. Nothing is uploaded: the fonts are fetched once, the card is
+laid out in an iframe, and the download serialises that into an SVG and paints
+it onto a canvas.
+
+Sliders for width, height, line height and margin, four themes, and a switch to
+set the type size by hand instead of fitting it.

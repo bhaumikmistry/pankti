@@ -2,22 +2,13 @@ import { chromium } from 'playwright-core'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { cardHtml } from './card.mjs'
-import { SIZES, specFromIssue, slugFor } from './parse.mjs'
+import { buildCard } from './card.mjs'
+import { specFromIssue, slugFor } from './parse.mjs'
+import { SIZES, maxFont, minFont } from './template.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = join(here, '..', 'out')
 
-/**
- * Both bounds scale with the card, because a fixed ceiling is only right for
- * one width. At a flat 132px a two word quote sat as a thin band in an empty
- * square: not filling anything, just capped.
- *
- * The floor is the point below which the quote is technically on the card and
- * practically unreadable, and the run fails rather than shipping it.
- */
-const maxFont = (w) => Math.round(w * 0.2)
-const minFont = (w) => Math.round(w * 0.024)
 
 /**
  * Binary search the largest font size whose text still fits.
@@ -63,7 +54,7 @@ export async function renderCard(spec, { outDir = OUT } = {}) {
       viewport: { width: size.w, height: size.h },
       deviceScaleFactor: 1,
     })
-    await page.setContent(cardHtml(spec), { waitUntil: 'load' })
+    await page.setContent(buildCard(spec), { waitUntil: 'load' })
     await page.evaluate(() => document.fonts.ready)
 
     const { size: fontSize, fits } = await fitText(page, size.w)

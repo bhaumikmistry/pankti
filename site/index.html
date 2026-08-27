@@ -241,14 +241,12 @@
     </label>
 
     <div>
-      <label class="toggle" for="auto">
+      <span class="lbl">Type size <span class="val" id="fsv"></span></span>
+      <input id="fs" type="range" min="16" max="300" step="1" value="90">
+      <label class="toggle" for="auto" style="margin-top:10px">
         <input id="auto" type="checkbox" checked>
-        Fit the text to the card
+        Fit to the card
       </label>
-      <div id="manualWrap" hidden style="margin-top:12px">
-        <span class="lbl">Type size <span class="val" id="fsv"></span></span>
-        <input id="fs" type="range" min="16" max="300" step="1" value="90">
-      </div>
     </div>
 
     <div class="actions">

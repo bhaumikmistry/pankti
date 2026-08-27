@@ -5,7 +5,7 @@ const ui = {
   quote: $('quote'), author: $('author'), source: $('source'),
   w: $('w'), h: $('h'), lh: $('lh'), pad: $('pad'), fs: $('fs'), auto: $('auto'),
   wv: $('wv'), hv: $('hv'), lhv: $('lhv'), padv: $('padv'), fsv: $('fsv'),
-  themes: $('themes'), presets: $('presets'), fonts: $('fonts'), manualWrap: $('manualWrap'),
+  themes: $('themes'), presets: $('presets'), fonts: $('fonts'),
   frame: $('frame'), meta: $('meta'), download: $('download'), asIssue: $('asIssue'), copy: $('copy'),
 }
 
@@ -296,8 +296,11 @@ async function rasterise() {
   const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'))
   if (!blob) throw new Error('the browser produced no image')
 
+  // Four random characters, so downloading three variations does not leave you
+  // with "quote (1).png" and "quote (2).png" and no idea which is which.
+  const id = Math.random().toString(36).slice(2, 6)
   const a = document.createElement('a')
-  a.download = `quote-${w}x${h}.png`
+  a.download = `pankti-${w}x${h}-${id}.png`
   a.href = URL.createObjectURL(blob)
   a.click()
   setTimeout(() => URL.revokeObjectURL(a.href), 1000)
@@ -352,7 +355,9 @@ function sync() {
   ui.hv.textContent = `${ui.h.value}px`
   ui.lhv.textContent = (+ui.lh.value).toFixed(2)
   ui.padv.textContent = `${ui.pad.value}%`
-  ui.manualWrap.hidden = ui.auto.checked
+  // The slider stays visible either way. Hidden behind the checkbox it looked
+  // like the control did not exist, and it is the one people go looking for.
+  ui.fs.style.opacity = ui.auto.checked ? '0.5' : '1'
 }
 
 function issueUrl() {
@@ -368,9 +373,16 @@ function issueUrl() {
 }
 
 for (const el of [ui.quote, ui.author, ui.source]) el.addEventListener('input', render)
-for (const el of [ui.w, ui.h, ui.lh, ui.pad, ui.fs]) {
+for (const el of [ui.w, ui.h, ui.lh, ui.pad]) {
   el.addEventListener('input', () => { sync(); render() })
 }
+
+// Reaching for the type size means you want that size, so it stops fitting.
+ui.fs.addEventListener('input', () => {
+  ui.auto.checked = false
+  sync()
+  render()
+})
 ui.auto.addEventListener('change', () => { sync(); render() })
 ui.download.addEventListener('click', download)
 ui.copy.addEventListener('click', async () => {

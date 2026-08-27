@@ -44,7 +44,8 @@ Story `1080x1920` only when someone says story.
 
 **Leave the type size alone.** It is fitted to the card by measuring the real
 laid-out text, which is better than a guess. Only reach for `auto=0&fs=` when
-someone asks for a specific size.
+someone asks for a specific size. On the page the slider is always there and
+dragging it turns the fitting off.
 
 **Pick a theme with some thought.** `ink` for something stark, `rose` for
 anything tender, `paper` for most things.

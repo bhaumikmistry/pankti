@@ -2,7 +2,10 @@
 
 _पंक्ति, a line of verse._
 
-<img src="https://raw.githubusercontent.com/bhaumikmistry/pankti/main/out/hero.png" width="420">
+<p>
+<img src="https://raw.githubusercontent.com/bhaumikmistry/pankti/main/out/hero.png" width="330">
+<img src="https://raw.githubusercontent.com/bhaumikmistry/pankti/main/out/hero-2.png" width="330">
+</p>
 
 A line worth keeping usually arrives as text and has to leave as an image. This
 turns one into the other, and nothing else.

@@ -43,9 +43,18 @@ laid-out text, which is the only honest answer to "fill the square".
 Fonts are committed, not fetched, so a card made today matches one made next
 year.
 
+## As a skill
+
+```sh
+npx skills add bhaumikmistry/pankti
+```
+
+Installs as `quote-card`. It teaches an agent the URL format so it can hand
+someone a finished card instead of instructions.
+
 ## More
 
-- [skill/SKILL.md](skill/SKILL.md), for an agent building these links
+- [skills/quote-card/SKILL.md](skills/quote-card/SKILL.md), for an agent building these links
 - [docs/fonts-and-characters.md](docs/fonts-and-characters.md), what renders,
   what leans on the reader's system, and how to add a face
 

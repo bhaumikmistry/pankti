@@ -64,6 +64,12 @@ This is on Pages rather than behind a function on purpose. A static file on a
 CDN has no compute to exhaust and nothing to bill, so the link can be handed
 out without becoming a liability.
 
+## Fonts and awkward characters
+
+[docs/fonts-and-characters.md](docs/fonts-and-characters.md) covers which
+scripts are bundled and which lean on the system, how to add a face, why it has
+to be a static font, and what happens to emoji, newlines and ampersands.
+
 ## From the page
 
 The page runs the same fitter and the same card template the Action does, in

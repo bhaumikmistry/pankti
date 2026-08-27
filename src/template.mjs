@@ -19,6 +19,18 @@ export const SIZES = {
   story: { w: 1080, h: 1920, label: 'Story 1080x1920' },
 }
 
+/**
+ * Which face sets the quote. The Devanagari family is always in the stack
+ * behind it, so Indic text keeps a font that shapes it whichever is chosen.
+ *
+ * Adding one means dropping a .ttf in fonts/, adding a line to FONT_FILES in
+ * src/card.mjs and site/app.js, and adding an entry here.
+ */
+export const FONTS = {
+  serif: { label: 'Serif', stack: "'CardSerif', 'CardDeva', Georgia, serif" },
+  sans: { label: 'Sans', stack: "'CardSans', 'CardDeva', system-ui, sans-serif" },
+}
+
 /** Both bounds scale with the card, so one ceiling is not baked in at one width. */
 export const maxFont = (w) => Math.round(w * 0.2)
 export const minFont = (w) => Math.round(w * 0.024)
@@ -32,7 +44,7 @@ export const esc = (s) =>
  * where the content is a plain div, and body rules simply never applied: the
  * export came out with no background, no padding and no centring.
  */
-export function cardCss({ theme = 'paper', w = 1080, h = 1080, padding, lineHeight = 1.34, root = 'body' } = {}) {
+export function cardCss({ theme = 'paper', w = 1080, h = 1080, padding, lineHeight = 1.34, root = 'body', font = 'serif' } = {}) {
   const t = THEMES[theme] || THEMES.paper
   const pad = padding ?? Math.round(w * 0.11)
   return `
@@ -47,7 +59,7 @@ export function cardCss({ theme = 'paper', w = 1080, h = 1080, padding, lineHeig
     padding: ${pad}px;
     /* Devanagari first so Indic text picks up a font that shapes it; the serif
        covers Latin, and the browser falls through per glyph. */
-    font-family: 'CardSerif', 'CardDeva', Georgia, serif;
+    font-family: ${(FONTS[font] || FONTS.serif).stack};
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -112,6 +124,7 @@ export function cardBody(spec) {
 /** A whole document, for the browser to screenshot. */
 export function cardHtml(spec, fontCss, opts = {}) {
   const s = SIZES[spec.size] || SIZES.square
+  if (spec.font && !opts.font) opts = { ...opts, font: spec.font }
   return `<!doctype html>
 <html><head><meta charset="utf-8"><style>
 ${fontCss}

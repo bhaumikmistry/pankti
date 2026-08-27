@@ -26,6 +26,7 @@ couplet stays two lines.
 | `quote` | The text. Required. Newlines preserved. |
 | `author` | Optional. Set in caps under a rule. |
 | `source` | Optional. Book, essay, wherever it came from. |
+| `font` | `serif` default, or `sans`. |
 | `theme` | `paper` warm off white, `ink` near black, `sky` cool grey blue, `rose` warm pink. Default `paper`. |
 | `w`, `h` | Pixels. 600 to 2400, in steps of 10. |
 | `size` | Shorthand for the pair: `square` 1080x1080, `portrait` 1080x1350, `story` 1080x1920. |
@@ -53,8 +54,16 @@ anything tender, `paper` for most things.
 **A very long quote will be refused rather than shrunk to nothing.** Past
 roughly 400 characters on a square, suggest portrait or trimming.
 
-**Devanagari, Urdu and other Indic text render correctly**, with proper
-shaping. No need to transliterate.
+**Devanagari renders correctly**, with proper shaping, from a bundled font. No
+need to transliterate.
+
+**Urdu, Arabic and emoji rely on the reader's system fonts.** They render, but
+the result differs between machines. Fine to use, not something to promise.
+
+**Do not type an opening quote mark.** One is drawn for you, hanging in the
+margin, so typing another gives two.
+
+**Newlines survive** as `%0A`, so a couplet keeps its line break.
 
 ## Offer the link, not a promise
 

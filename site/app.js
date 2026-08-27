@@ -1,15 +1,16 @@
-import { THEMES, SIZES, cardCss, cardBody, maxFont, minFont } from './template.mjs'
+import { THEMES, SIZES, FONTS, cardCss, cardBody, maxFont, minFont } from './template.mjs'
 
 const $ = (id) => document.getElementById(id)
 const ui = {
   quote: $('quote'), author: $('author'), source: $('source'),
   w: $('w'), h: $('h'), lh: $('lh'), pad: $('pad'), fs: $('fs'), auto: $('auto'),
   wv: $('wv'), hv: $('hv'), lhv: $('lhv'), padv: $('padv'), fsv: $('fsv'),
-  themes: $('themes'), presets: $('presets'), manualWrap: $('manualWrap'),
+  themes: $('themes'), presets: $('presets'), fonts: $('fonts'), manualWrap: $('manualWrap'),
   frame: $('frame'), meta: $('meta'), download: $('download'), asIssue: $('asIssue'), copy: $('copy'),
 }
 
 let theme = 'paper'
+let font = 'serif'
 let fontCss = ''
 /** [{ family, css }], so the export can inline only the faces it needs. */
 let FACES = []
@@ -34,6 +35,7 @@ ui.frame.appendChild(frameEl)
  * it. Same reason the Action inlines them.
  */
 async function loadFonts() {
+  // Mirrors FONT_FILES in src/card.mjs. Adding a face means both lists.
   const files = [
     ['CardSerif', 'Newsreader.ttf'],
     ['CardDeva', 'NotoSerifDevanagari.ttf'],
@@ -77,10 +79,24 @@ const PARAMS = {
 
 function readParams() {
   const q = new URLSearchParams(location.search)
+
+  // The markup ships a filled-in example so the page is not blank on a first
+  // visit. Once a link carries any parameters it is describing a specific
+  // card, and anything it leaves out has to be empty rather than inheriting
+  // the demo: a link with no author was printing "John Salvatier" under
+  // someone else's words.
+  const isLink = [...q.keys()].length > 0
+  if (isLink) {
+    ui.quote.value = ''
+    ui.author.value = ''
+    ui.source.value = ''
+  }
+
   for (const [key, def] of Object.entries(PARAMS)) {
     if (q.has(key)) def.el().value = q.get(key)
   }
   if (q.has('theme') && THEMES[q.get('theme')]) theme = q.get('theme')
+  if (q.has('font') && FONTS[q.get('font')]) font = q.get('font')
   if (q.has('size') && SIZES[q.get('size')]) {
     ui.w.value = SIZES[q.get('size')].w
     ui.h.value = SIZES[q.get('size')].h
@@ -101,6 +117,7 @@ function writeParams() {
   if (ui.author.value.trim()) q.set('author', ui.author.value.trim())
   if (ui.source.value.trim()) q.set('source', ui.source.value.trim())
   q.set('theme', theme)
+  if (font !== 'serif') q.set('font', font)
   q.set('w', ui.w.value)
   q.set('h', ui.h.value)
   if (+ui.lh.value !== 1.34) q.set('lh', ui.lh.value)
@@ -160,7 +177,7 @@ function render() {
   doc.open()
   doc.write(
     `<!doctype html><html><head><meta charset="utf-8"><style>${fontCss}\n${cardCss({
-      theme, w, h, padding, lineHeight: +ui.lh.value,
+      theme, w, h, padding, lineHeight: +ui.lh.value, font,
     })}</style></head><body>${cardBody(s)}</body></html>`
   )
   doc.close()
@@ -247,6 +264,7 @@ async function rasterise() {
       theme, w, h,
       padding: Math.round((w * +ui.pad.value) / 100),
       lineHeight: +ui.lh.value,
+      font,
       root: '#cardroot',
     }) +
     `\n#quote { font-size: ${doc.getElementById('quote').style.fontSize}; }`
@@ -298,6 +316,20 @@ function buildChips() {
       render()
     }
     ui.themes.appendChild(b)
+  }
+
+  for (const [key, f] of Object.entries(FONTS)) {
+    const b = document.createElement('button')
+    b.className = 'chip'
+    b.type = 'button'
+    b.textContent = f.label
+    b.setAttribute('aria-pressed', String(key === font))
+    b.onclick = () => {
+      font = key
+      ;[...ui.fonts.children].forEach((c) => c.setAttribute('aria-pressed', String(c === b)))
+      render()
+    }
+    ui.fonts.appendChild(b)
   }
 
   for (const [key, s] of Object.entries(SIZES)) {
@@ -359,9 +391,12 @@ window.addEventListener('resize', () => scaleToFit(+ui.w.value, +ui.h.value))
 
 buildChips()
 const boot = readParams()
-// The chips are built before the URL is read, so the pressed one may be wrong.
+// The chips are built before the URL is read, so the pressed ones may be wrong.
 ;[...ui.themes.children].forEach((c) =>
   c.setAttribute('aria-pressed', String(c.textContent.trim() === theme))
+)
+;[...ui.fonts.children].forEach((c) =>
+  c.setAttribute('aria-pressed', String(c.textContent.trim() === (FONTS[font] || {}).label))
 )
 sync()
 ui.download.disabled = true

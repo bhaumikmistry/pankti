@@ -1,10 +1,12 @@
-# quote-cards
+# pankti
+
+_पंक्ति, a line of verse._
 
 Type a quote, get an image sized for Instagram.
 
-**[bhaumikmistry.github.io/quote-cards](https://bhaumikmistry.github.io/quote-cards/)** for the page, or open an issue and get a pull request with the image.
+**[bhaumikmistry.github.io/pankti](https://bhaumikmistry.github.io/pankti/)** for the page, or open an issue and get a pull request with the image.
 
-![](https://raw.githubusercontent.com/bhaumikmistry/quote-cards/main/out/sample.png)
+![](https://raw.githubusercontent.com/bhaumikmistry/pankti/main/out/sample.png)
 
 ## From an issue
 
@@ -53,7 +55,7 @@ twice gives byte-identical output.
 Every control is a query parameter, so a card is a URL:
 
 ```
-https://bhaumikmistry.github.io/quote-cards/?quote=Keep%20going.&author=Anon&theme=ink&size=square&download=1
+https://bhaumikmistry.github.io/pankti/?quote=Keep%20going.&author=Anon&theme=ink&size=square&download=1
 ```
 
 With `download=1` the image saves on open. Without it, the editor opens with

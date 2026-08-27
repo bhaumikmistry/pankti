@@ -364,7 +364,7 @@ function issueUrl() {
     author: s.author,
     source: s.source,
   })
-  return `https://github.com/bhaumikmistry/quote-cards/issues/new?${p}`
+  return `https://github.com/bhaumikmistry/pankti/issues/new?${p}`
 }
 
 for (const el of [ui.quote, ui.author, ui.source]) el.addEventListener('input', render)

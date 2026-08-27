@@ -9,11 +9,11 @@ Builds a link that opens a quote card and downloads it as a PNG.
 
 ## Use it
 
-Assemble a URL against `https://bhaumikmistry.github.io/quote-cards/` and give
+Assemble a URL against `https://bhaumikmistry.github.io/pankti/` and give
 it to the person. Opening it renders the card and saves the image.
 
 ```
-https://bhaumikmistry.github.io/quote-cards/?quote=<text>&author=<name>&theme=paper&w=1080&h=1080&download=1
+https://bhaumikmistry.github.io/pankti/?quote=<text>&author=<name>&theme=paper&w=1080&h=1080&download=1
 ```
 
 Percent-encode every value. Newlines in the quote are `%0A` and are kept, so a

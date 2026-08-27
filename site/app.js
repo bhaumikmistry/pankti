@@ -6,7 +6,7 @@ const ui = {
   w: $('w'), h: $('h'), lh: $('lh'), pad: $('pad'), fs: $('fs'), auto: $('auto'),
   wv: $('wv'), hv: $('hv'), lhv: $('lhv'), padv: $('padv'), fsv: $('fsv'),
   themes: $('themes'), presets: $('presets'), manualWrap: $('manualWrap'),
-  frame: $('frame'), meta: $('meta'), download: $('download'), asIssue: $('asIssue'),
+  frame: $('frame'), meta: $('meta'), download: $('download'), asIssue: $('asIssue'), copy: $('copy'),
 }
 
 let theme = 'paper'
@@ -55,6 +55,58 @@ async function loadFonts() {
     })
   )
   return FACES.map((f) => f.css).join('\n')
+}
+
+/**
+ * Every control is a query parameter, so a card is a link.
+ *
+ * That is the whole reason this is on Pages rather than behind a function: a
+ * static file on a CDN has no compute to exhaust and nothing to bill, so a
+ * link can be handed out without it becoming a liability.
+ */
+const PARAMS = {
+  quote: { el: () => ui.quote },
+  author: { el: () => ui.author },
+  source: { el: () => ui.source },
+  w: { el: () => ui.w },
+  h: { el: () => ui.h },
+  lh: { el: () => ui.lh },
+  pad: { el: () => ui.pad },
+  fs: { el: () => ui.fs },
+}
+
+function readParams() {
+  const q = new URLSearchParams(location.search)
+  for (const [key, def] of Object.entries(PARAMS)) {
+    if (q.has(key)) def.el().value = q.get(key)
+  }
+  if (q.has('theme') && THEMES[q.get('theme')]) theme = q.get('theme')
+  if (q.has('size') && SIZES[q.get('size')]) {
+    ui.w.value = SIZES[q.get('size')].w
+    ui.h.value = SIZES[q.get('size')].h
+  }
+  // Anything but auto=0 keeps the fitter on, since that is the useful default.
+  if (q.get('auto') === '0') ui.auto.checked = false
+  return { download: q.get('download') === '1' }
+}
+
+/**
+ * Kept in the address bar as things change, so the link in the bar is always
+ * the card on screen. replaceState rather than pushState: every slider nudge
+ * filling the back button would be miserable.
+ */
+function writeParams() {
+  const q = new URLSearchParams()
+  q.set('quote', ui.quote.value)
+  if (ui.author.value.trim()) q.set('author', ui.author.value.trim())
+  if (ui.source.value.trim()) q.set('source', ui.source.value.trim())
+  q.set('theme', theme)
+  q.set('w', ui.w.value)
+  q.set('h', ui.h.value)
+  if (+ui.lh.value !== 1.34) q.set('lh', ui.lh.value)
+  if (+ui.pad.value !== 11) q.set('pad', ui.pad.value)
+  if (!ui.auto.checked) { q.set('auto', '0'); q.set('fs', ui.fs.value) }
+  history.replaceState(null, '', `?${q}`)
 }
 
 const spec = () => ({
@@ -138,6 +190,7 @@ function render() {
         : '<span>nothing cut off</span>')
 
     scaleToFit(w, h)
+    writeParams()
   }
 
   // Fonts are already in the parent document's cache, but the iframe still has
@@ -288,13 +341,44 @@ for (const el of [ui.w, ui.h, ui.lh, ui.pad, ui.fs]) {
 }
 ui.auto.addEventListener('change', () => { sync(); render() })
 ui.download.addEventListener('click', download)
+ui.copy.addEventListener('click', async () => {
+  // The link already describes the card. Adding download=1 makes it produce
+  // one on open, which is what makes it worth handing to someone.
+  const url = `${location.origin}${location.pathname}${location.search}&download=1`
+  try {
+    await navigator.clipboard.writeText(url)
+    ui.copy.textContent = 'copied'
+  } catch {
+    ui.copy.textContent = 'press ctrl+c'
+    prompt('Copy this link', url)
+  }
+  setTimeout(() => (ui.copy.textContent = 'Copy link'), 1400)
+})
 ui.asIssue.addEventListener('click', (e) => { e.target.href = issueUrl() })
 window.addEventListener('resize', () => scaleToFit(+ui.w.value, +ui.h.value))
 
 buildChips()
+const boot = readParams()
+// The chips are built before the URL is read, so the pressed one may be wrong.
+;[...ui.themes.children].forEach((c) =>
+  c.setAttribute('aria-pressed', String(c.textContent.trim() === theme))
+)
 sync()
 ui.download.disabled = true
 ui.meta.textContent = 'loading fonts…'
 fontCss = await loadFonts()
 ui.download.disabled = false
 render()
+
+if (boot.download) {
+  // Wait for the fitter to settle, or the card downloads at the wrong size.
+  setTimeout(async () => {
+    try {
+      await rasterise()
+    } catch {
+      // Some browsers refuse a download that no click asked for. Say so rather
+      // than looking broken.
+      ui.meta.innerHTML = '<span class="warn">Your browser blocked the automatic download. Use the button.</span>'
+    }
+  }, 400)
+}

@@ -48,6 +48,22 @@ npm test
 that long quotes shrink, that Devanagari comes out, and that the same input
 twice gives byte-identical output.
 
+## From a link
+
+Every control is a query parameter, so a card is a URL:
+
+```
+https://bhaumikmistry.github.io/quote-cards/?quote=Keep%20going.&author=Anon&theme=ink&size=square&download=1
+```
+
+With `download=1` the image saves on open. Without it, the editor opens with
+everything filled in. [skill/SKILL.md](skill/SKILL.md) documents the parameters
+for an agent to build these.
+
+This is on Pages rather than behind a function on purpose. A static file on a
+CDN has no compute to exhaust and nothing to bill, so the link can be handed
+out without becoming a liability.
+
 ## From the page
 
 The page runs the same fitter and the same card template the Action does, in
